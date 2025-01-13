@@ -22,7 +22,7 @@ If your notebook runs without any issues you will see an output in the "Network 
 * Node 0 in our setup is the tracking server that is exposed to the public
 * Node 1 and Node 2 will run the postgres DB and the MiniIO artifact stores repectively
 
-## Setting up Postgres server on Node 1
+## Set up Postgres server on Node 1
 
 The Docker Compose file required to set up the Postgres database is provided in this repository. First, navigate to the directory where the docker-compose-postgres.yaml file is located. Since Node 0 is the only node exposed to the public, you must transfer the file to Node 0 first and then forward it to Node 1.
 
@@ -37,12 +37,33 @@ This will move the YAML file to node 0. Then on node 0 run:
 scp  /home/docker-compose-postgres.yaml node-1:/home/
 ```
 
-Finally run 
+Finally ssh onto node-1 from node-0 and run:
 ```
 docker compose -f /home/docker-compose-postgres.yaml up -d
 ```
 
 You can do a `docker ps` to check if the postgres server is succesfully up and running. 
+
+## Set up MinIO artifact store on Node 2
+
+We will move the docker-compose files to node1 in a similar way we did for node 1.  Navigate to the directory where the docker-compose-postgres.yaml file is located and run
+
+```
+scp -i <path to your private key> docker-compose-minio.yaml cc@your_public_ip:/home/
+```
+
+Then on node-0 run:
+
+```
+scp  /home/docker-compose-minio.yaml node-2:/home/
+```
+
+Finally, on node-2 run:
+```
+docker compose -f /home/docker-compose-minio.yaml up -d
+```
+
+## Set up the MLFlow tracking server - Node 0
 
 
 This material is based upon work supported by the National Science Foundation under Grant No. 2230079.
