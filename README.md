@@ -46,7 +46,9 @@ You can do a `docker ps` to check if the postgres server is succesfully up and r
 
 ## Set up MinIO artifact store on Node 2
 
-We will move the docker-compose files to node1 in a similar way we did for node 1.  Navigate to the directory where the docker-compose-postgres.yaml file is located and run
+On node2 we will set up MinIO, an S3-compatible object storage, as an artifact store so that you don’t need to have AWS account to run this experiment. We will move the docker-compose files to node1 in a similar way we did for node 1.  
+
+Navigate to the directory where the docker-compose-postgres.yaml file is located and run
 
 ```
 scp -i <path to your private key> docker-compose-minio.yaml cc@your_public_ip:/home/
@@ -63,7 +65,31 @@ Finally, on node-2 run:
 docker compose -f /home/docker-compose-minio.yaml up -d
 ```
 
+This will create an artifact store and also initialize and empty bucket named `mlflowbucket` on node2 
+
 ## Set up the MLFlow tracking server - Node 0
+
+We now have the artifact store running on node-2 and the Postgres server running on node-1. All we have to now do is to launch the tracking server on node-0. For the tracking server to access remote storage, it needs to be configured with the necessary credentials.
+
+```
+export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.12:5000 
+export AWS_ACCESS_KEY_ID=minio_user
+export AWS_SECRET_ACCESS_KEY=minio_password
+```
+
+Note that these credentials are the ones specified in `docker-compose-minio.yaml`. If you used different credentials in your YAML, you will have to change the credentials accordingly. 
+
+Finally, to launch the tracking server you will run: 
+
+```
+mlflow server \
+  --backend-store-uri postgresql://user:password@192.168.1.11:5432/mlflowdb \
+  --artifacts-destination s3://mlflowbucket \
+  --host 0.0.0.0 \
+  --port 8000
+```
+
+If you used different credntials in your docker-compose postgres, you will have to replace the command with the appropriate credentials. Your tracking server is now running and is accissible at `http://<public IP of node 0>:8000`.
 
 
 This material is based upon work supported by the National Science Foundation under Grant No. 2230079.
