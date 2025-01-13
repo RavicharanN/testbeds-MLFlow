@@ -69,17 +69,22 @@ This will create an artifact store and also initialize and empty bucket named `m
 
 ## Set up the MLFlow tracking server - Node 0
 
-We now have the artifact store running on node-2 and the Postgres server running on node-1. All we have to now do is to launch the tracking server on node-0. For the tracking server to access remote storage, it needs to be configured with the necessary credentials.
+We now have the artifact store running on Node 2 and the Postgres server running on Node 1. The final step is to launch the tracking server on Node 0. For the tracking server to access remote storage, it needs to be configured with the appropriate credentials.
+
+### Step 1: Set Environment Variables for Remote Storage
+
+Run the following commands on Node 0:
 
 ```
 export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.12:5000 
 export AWS_ACCESS_KEY_ID=minio_user
 export AWS_SECRET_ACCESS_KEY=minio_password
 ```
+> **Note:** These credentials are defined in docker-compose-minio.yaml. If you used different credentials in your YAML, update these commands accordingly.
 
-Note that these credentials are the ones specified in `docker-compose-minio.yaml`. If you used different credentials in your YAML, you will have to change the credentials accordingly. 
+### Step 2: Launch the Tracking Server
 
-Finally, to launch the tracking server you will run: 
+Run the following command on Node 0 to start the tracking server:
 
 ```
 mlflow server \
@@ -88,8 +93,15 @@ mlflow server \
   --host 0.0.0.0 \
   --port 8000
 ```
+> **Note:** If you used different credentials for the Postgres database in your docker-compose-postgres.yaml, update the --backend-store-uri option with the correct values.
 
-If you used different credntials in your docker-compose postgres, you will have to replace the command with the appropriate credentials. Your tracking server is now running and is accissible at `http://<public IP of node 0>:8000`.
+### Access Tracking Server
+
+Your tracking server is now running and accessible at:
+
+```
+http://<public IP of Node 0>:8000
+```
 
 
 This material is based upon work supported by the National Science Foundation under Grant No. 2230079.
