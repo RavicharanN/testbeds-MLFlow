@@ -19,6 +19,30 @@ If your notebook runs without any issues you will see an output in the "Network 
 ![Network Topology](./images/nettop.png)
 
 
+* Node 0 in our setup is the tracking server that is exposed to the public
+* Node 1 and Node 2 will run the postgres DB and the MiniIO artifact stores repectively
+
+## Setting up Postgres server on Node 1
+
+The Docker Compose file required to set up the Postgres database is provided in this repository. First, navigate to the directory where the docker-compose-postgres.yaml file is located. Since Node 0 is the only node exposed to the public, you must transfer the file to Node 0 first and then forward it to Node 1.
+
+
+```
+scp -i <path to your private key> docker-compose-postgres.yaml cc@your_public_ip:/home/
+```
+
+This will move the YAML file to node 0. Then on node 0 run: 
+
+```
+scp  /home/docker-compose-postgres.yaml node-1:/home/
+```
+
+Finally run 
+```
+docker compose -f /home/docker-compose-postgres.yaml up -d
+```
+
+You can do a `docker ps` to check if the postgres server is succesfully up and running. 
 
 
 This material is based upon work supported by the National Science Foundation under Grant No. 2230079.
