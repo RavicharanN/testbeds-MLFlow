@@ -20,52 +20,31 @@ If your notebook runs without any issues you will see an output in the "Network 
 
 
 * Node 0 in our setup is the tracking server that is exposed to the public
-* Node 1 and Node 2 will run the postgres DB and the MiniIO artifact stores repectively
+* Node 1 and Node 2 will run the MiniIO artifact stores and PostgresDB repectively
 
-## Set up Postgres server on Node 1
+## Set up MinIO artifact store on Node 1
 
-The Docker Compose file required to set up the Postgres database is provided in this repository. First, navigate to the directory where the docker-compose-postgres.yaml file is located. Since Node 0 is the only node exposed to the public, you must transfer the file to Node 0 first and then forward it to Node 1.
+On node1 we will set up MinIO, an S3-compatible object storage, as an artifact store so that you don’t need to have AWS account to run this experiment. The `reserve_chameleon` note book should have already created a docker compose file to start the MinIO service on Node1. 
 
+To get the service up, you will SSH into node-1 (via node-0) and run:
 
-```
-scp -i <path to your private key> docker-compose-postgres.yaml cc@your_public_ip:/home/
-```
-
-This will move the YAML file to node 0. Then on node 0 run: 
-
-```
-scp  /home/docker-compose-postgres.yaml node-1:/home/
-```
-
-Finally ssh onto node-1 from node-0 and run:
-```
-docker compose -f /home/docker-compose-postgres.yaml up -d
-```
-
-You can do a `docker ps` to check if the postgres server is succesfully up and running. 
-
-## Set up MinIO artifact store on Node 2
-
-On node2 we will set up MinIO, an S3-compatible object storage, as an artifact store so that you don’t need to have AWS account to run this experiment. We will move the docker-compose files to node1 in a similar way we did for node 1.  
-
-Navigate to the directory where the docker-compose-postgres.yaml file is located and run
-
-```
-scp -i <path to your private key> docker-compose-minio.yaml cc@your_public_ip:/home/
-```
-
-Then on node-0 run:
-
-```
-scp  /home/docker-compose-minio.yaml node-2:/home/
-```
-
-Finally, on node-2 run:
 ```
 docker compose -f /home/docker-compose-minio.yaml up -d
 ```
 
-This will create an artifact store and also initialize and empty bucket named `mlflowbucket` on node2 
+You can do a `docker ps` to check if the postgres server is succesfully up and running. 
+
+## Set up Postgres server on Node 2
+
+On node2 we will set up the postgres server that will be used as a database that logs the parameters of all the experiments we run. The `reserve_chameleon` note book should have already created a docker compose file to start the Postgres service on Node1. 
+
+To get the service up, you will SSH into node-2 (via node-0) and run:
+
+```
+docker compose -f /home/docker-compose-postgres.yaml up -d
+```
+
+You can run a `docker ps` on both node-0 and node-1 to check if the services are successfully up and running.
 
 ## Set up the MLFlow tracking server - Node 0
 
@@ -76,7 +55,7 @@ We now have the artifact store running on Node 2 and the Postgres server running
 Run the following commands on Node 0:
 
 ```
-export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.12:5000 
+export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.11:5000 
 export AWS_ACCESS_KEY_ID=minio_user
 export AWS_SECRET_ACCESS_KEY=minio_password
 ```
@@ -88,7 +67,7 @@ Run the following command on Node 0 to start the tracking server:
 
 ```
 mlflow server \
-  --backend-store-uri postgresql://user:password@192.168.1.11:5432/mlflowdb \
+  --backend-store-uri postgresql://user:password@192.168.1.12:5432/mlflowdb \
   --artifacts-destination s3://mlflowbucket \
   --host 0.0.0.0 \
   --port 8000
