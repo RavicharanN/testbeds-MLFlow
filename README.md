@@ -55,9 +55,9 @@ We now have the artifact store running on Node 2 and the Postgres server running
 Run the following commands on Node 0:
 
 ```
-export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.11:5000 
-export AWS_ACCESS_KEY_ID=minio_user
-export AWS_SECRET_ACCESS_KEY=minio_password
+export MLFLOW_S3_ENDPOINT_URL=http://192.168.1.11:8000 
+export AWS_ACCESS_KEY_ID=your-access-key
+export AWS_SECRET_ACCESS_KEY=your-access-key
 ```
 > **Note:** These credentials are defined in docker-compose-minio.yaml. If you used different credentials in your YAML, update these commands accordingly.
 
@@ -68,7 +68,7 @@ Run the following command on Node 0 to start the tracking server:
 ```
 mlflow server \
   --backend-store-uri postgresql://user:password@192.168.1.12:5432/mlflowdb \
-  --artifacts-destination s3://mlflowbucket \
+  --artifacts-destination s3://mlflow \
   --host 0.0.0.0 \
   --port 8000
 ```
